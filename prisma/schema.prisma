@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  clerkId   String      @unique
+  name      String?
+  email     String      @unique
+  account   Account?
+  entries   trizEntry[]
+  analyses  Analysis[]
+}
+model Account {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+}
+
+model trizEntry {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  content  String    @db.Text
+  analysis Analysis?
+
+  @@unique([userId, id])
+}
+
+model Analysis {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entryId String
+  entry   trizEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  primary_contradiction  String   @db.Text
+  secondary_contradiction String  @db.Text
+  Triz_principles String    @db.Text
+  Innovative_Solutions String   @db.Text
+  Benefits       String  @db.Text
+  Risks          String  @db.Text
+  @@unique([entryId]) 
+  @@index([userId])
+}
